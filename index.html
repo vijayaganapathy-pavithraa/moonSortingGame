@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Return the Lost Moons!</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --space: #03050f;
+    --deep: #070b1a;
+    --nebula: #0d1535;
+    --glow-blue: #4fc3f7;
+    --glow-purple: #b39ddb;
+    --glow-gold: #ffd54f;
+    --glow-red: #ef5350;
+    --glow-green: #66bb6a;
+    --text: #e8eaf6;
+    --muted: #7986cb;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--space);
+    color: var(--text);
+    font-family: 'Exo 2', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* Starfield */
+  .stars {
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background-image:
+      radial-gradient(1px 1px at 10% 20%, white, transparent),
+      radial-gradient(1px 1px at 30% 60%, white, transparent),
+      radial-gradient(1px 1px at 50% 10%, white, transparent),
+      radial-gradient(1px 1px at 70% 80%, white, transparent),
+      radial-gradient(1px 1px at 90% 40%, white, transparent),
+      radial-gradient(1px 1px at 15% 75%, white, transparent),
+      radial-gradient(1px 1px at 45% 55%, white, transparent),
+      radial-gradient(1px 1px at 65% 25%, white, transparent),
+      radial-gradient(1px 1px at 85% 65%, white, transparent),
+      radial-gradient(1.5px 1.5px at 25% 35%, #b0bec5, transparent),
+      radial-gradient(1.5px 1.5px at 55% 85%, #b0bec5, transparent),
+      radial-gradient(1.5px 1.5px at 75% 15%, #b0bec5, transparent),
+      radial-gradient(2px 2px at 5% 50%, #e3f2fd, transparent),
+      radial-gradient(2px 2px at 95% 90%, #e3f2fd, transparent),
+      radial-gradient(1px 1px at 38% 42%, white, transparent),
+      radial-gradient(1px 1px at 62% 68%, white, transparent),
+      radial-gradient(1px 1px at 82% 32%, white, transparent),
+      radial-gradient(1px 1px at 18% 88%, white, transparent),
+      radial-gradient(1px 1px at 48% 72%, white, transparent),
+      radial-gradient(1px 1px at 72% 48%, white, transparent);
+  }
+
+  .container { position: relative; z-index: 1; max-width: 1200px; margin: 0 auto; padding: 20px; }
+
+  /* SCREENS */
+  .screen { display: none; animation: fadeIn 0.5s ease; }
+  .screen.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* TITLE SCREEN */
+  .title-screen { text-align: center; padding: 60px 20px; }
+  .title-main {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(2rem, 6vw, 4.5rem);
+    font-weight: 900;
+    background: linear-gradient(135deg, var(--glow-gold), var(--glow-blue), var(--glow-purple));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 8px;
+    text-shadow: none;
+    filter: drop-shadow(0 0 30px rgba(79,195,247,0.4));
+    animation: titlePulse 3s ease-in-out infinite;
+  }
+  @keyframes titlePulse {
+    0%, 100% { filter: drop-shadow(0 0 20px rgba(79,195,247,0.3)); }
+    50% { filter: drop-shadow(0 0 40px rgba(179,157,219,0.6)); }
+  }
+  .title-sub {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(0.8rem, 2vw, 1.1rem);
+    color: var(--muted);
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    margin-bottom: 40px;
+  }
+  .black-hole-visual {
+    width: 180px; height: 180px;
+    margin: 0 auto 40px;
+    position: relative;
+    animation: rotate 20s linear infinite;
+  }
+  .black-hole-visual::before {
+    content: '';
+    position: absolute; inset: 0;
+    border-radius: 50%;
+    background: radial-gradient(circle, #000 35%, #1a0030 55%, #0a0020 70%, transparent 100%);
+    box-shadow: 0 0 60px 20px rgba(100,0,200,0.3), 0 0 120px 40px rgba(50,0,100,0.2), inset 0 0 30px rgba(0,0,0,0.9);
+  }
+  .black-hole-visual::after {
+    content: '';
+    position: absolute; inset: -15px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    background: conic-gradient(from 0deg, transparent, rgba(179,157,219,0.6), rgba(79,195,247,0.4), transparent, rgba(255,213,79,0.3), transparent) border-box;
+    -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: destination-out;
+    mask-composite: exclude;
+    animation: rotate 3s linear infinite;
+  }
+  @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+  .story-text {
+    max-width: 600px; margin: 0 auto 40px;
+    font-size: 1.1rem; line-height: 1.8;
+    color: #b0bec5;
+  }
+  .story-text strong { color: var(--glow-blue); }
+
+  .btn {
+    font-family: 'Orbitron', monospace;
+    font-size: 1rem; font-weight: 700;
+    padding: 16px 40px;
+    border: 2px solid var(--glow-blue);
+    background: transparent;
+    color: var(--glow-blue);
+    cursor: pointer;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    transition: all 0.3s;
+    clip-path: polygon(10px 0%, 100% 0%, calc(100% - 10px) 100%, 0% 100%);
+    position: relative;
+    overflow: hidden;
+  }
+  .btn::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: var(--glow-blue);
+    transform: translateX(-100%);
+    transition: transform 0.3s;
+    z-index: -1;
+  }
+  .btn:hover { color: var(--space); }
+  .btn:hover::before { transform: translateX(0); }
+  .btn-gold { border-color: var(--glow-gold); color: var(--glow-gold); }
+  .btn-gold::before { background: var(--glow-gold); }
+  .btn-green { border-color: var(--glow-green); color: var(--glow-green); }
+  .btn-green::before { background: var(--glow-green); }
+
+  /* MEMORISE SCREEN */
+  .memorise-header { text-align: center; margin-bottom: 30px; }
+  .memorise-header h2 {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.8rem; color: var(--glow-gold);
+    margin-bottom: 8px;
+  }
+  .memorise-header p { color: #b0bec5; font-size: 1rem; }
+
+  .timer-bar-wrap {
+    width: 100%; max-width: 500px; margin: 0 auto 30px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(79,195,247,0.2);
+    height: 12px; border-radius: 6px; overflow: hidden;
+  }
+  .timer-bar {
+    height: 100%; width: 100%;
+    background: linear-gradient(90deg, var(--glow-green), var(--glow-blue), var(--glow-gold), var(--glow-red));
+    transition: width 1s linear;
+    border-radius: 6px;
+  }
+  .timer-text {
+    font-family: 'Orbitron', monospace;
+    font-size: 2rem; font-weight: 900;
+    text-align: center; margin-bottom: 20px;
+    color: var(--glow-gold);
+    animation: timerPulse 1s ease-in-out infinite;
+  }
+  @keyframes timerPulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
+
+  .moon-list-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+    max-width: 900px; margin: 0 auto;
+  }
+  .planet-moon-card {
+    background: rgba(13,21,53,0.8);
+    border: 1px solid rgba(79,195,247,0.2);
+    border-radius: 12px;
+    padding: 16px;
+    backdrop-filter: blur(10px);
+  }
+  .planet-moon-card h3 {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.85rem; font-weight: 700;
+    margin-bottom: 10px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .planet-moon-card ul { list-style: none; }
+  .planet-moon-card ul li {
+    font-size: 0.85rem; color: #b0bec5;
+    padding: 3px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .planet-moon-card ul li:last-child { border-bottom: none; }
+
+  /* GAME SCREEN */
+  .game-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 20px;
+    background: rgba(13,21,53,0.6);
+    border: 1px solid rgba(79,195,247,0.15);
+    border-radius: 12px;
+    padding: 16px 24px;
+    backdrop-filter: blur(10px);
+  }
+  .game-header h2 {
+    font-family: 'Orbitron', monospace;
+    font-size: 1rem; color: var(--glow-blue);
+    letter-spacing: 2px;
+  }
+  .score-display {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.4rem; font-weight: 900;
+    color: var(--glow-gold);
+  }
+
+  .game-layout {
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    gap: 20px;
+  }
+
+  /* Black Hole */
+  .black-hole-section h3 {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.9rem; color: var(--glow-purple);
+    margin-bottom: 12px; letter-spacing: 2px;
+    text-align: center;
+  }
+  .black-hole-basket {
+    background: radial-gradient(ellipse at center, #1a0030 0%, #070010 60%, #03050f 100%);
+    border: 2px solid rgba(179,157,219,0.4);
+    border-radius: 16px;
+    min-height: 200px;
+    padding: 16px;
+    display: flex; flex-wrap: wrap; gap: 8px; align-content: flex-start;
+    position: relative;
+    box-shadow: inset 0 0 40px rgba(100,0,200,0.3), 0 0 30px rgba(100,0,200,0.2);
+  }
+  .black-hole-basket::before {
+    content: '🕳️ BLACK HOLE';
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+    font-family: 'Orbitron', monospace;
+    font-size: 0.7rem; color: rgba(179,157,219,0.3);
+    letter-spacing: 3px; pointer-events: none;
+    white-space: nowrap;
+  }
+
+  /* Moon chips */
+  .moon-chip {
+    background: linear-gradient(135deg, #1a2a4a, #0d1535);
+    border: 1px solid rgba(79,195,247,0.4);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text);
+    cursor: grab;
+    transition: all 0.2s;
+    user-select: none;
+    white-space: nowrap;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .moon-chip:hover {
+    border-color: var(--glow-blue);
+    box-shadow: 0 0 12px rgba(79,195,247,0.4);
+    transform: translateY(-2px);
+    background: linear-gradient(135deg, #1e3a5f, #0d1a3a);
+  }
+  .moon-chip.dragging {
+    opacity: 0.5; cursor: grabbing;
+  }
+
+  /* Planets grid */
+  .planets-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+  .planet-basket {
+    background: rgba(13,21,53,0.7);
+    border: 2px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 12px;
+    min-height: 120px;
+    transition: all 0.2s;
+    backdrop-filter: blur(5px);
+  }
+  .planet-basket.drag-over {
+    border-color: var(--glow-green);
+    box-shadow: 0 0 20px rgba(102,187,106,0.4);
+    background: rgba(102,187,106,0.05);
+  }
+  .planet-basket h4 {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.7rem; font-weight: 700;
+    margin-bottom: 8px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .planet-basket .moons-in { display: flex; flex-wrap: wrap; gap: 4px; }
+  .moon-count { font-size: 0.65rem; color: var(--muted); margin-top: 4px; }
+
+  /* Planet colors */
+  .p-mercury { border-color: rgba(144,164,174,0.4); }
+  .p-mercury h4 { color: #90a4ae; }
+  .p-venus { border-color: rgba(255,204,128,0.4); }
+  .p-venus h4 { color: #ffcc80; }
+  .p-earth { border-color: rgba(100,181,246,0.4); }
+  .p-earth h4 { color: #64b5f6; }
+  .p-mars { border-color: rgba(239,83,80,0.4); }
+  .p-mars h4 { color: #ef5350; }
+  .p-jupiter { border-color: rgba(255,183,77,0.4); }
+  .p-jupiter h4 { color: #ffb74d; }
+  .p-saturn { border-color: rgba(255,213,79,0.4); }
+  .p-saturn h4 { color: #ffd54f; }
+  .p-uranus { border-color: rgba(77,208,225,0.4); }
+  .p-uranus h4 { color: #4dd0e1; }
+  .p-neptune { border-color: rgba(92,107,192,0.4); }
+  .p-neptune h4 { color: #5c6bc0; }
+  .p-pluto { border-color: rgba(179,157,219,0.4); }
+  .p-pluto h4 { color: #b39ddb; }
+
+  /* RESULTS SCREEN */
+  .results-screen { text-align: center; padding: 40px 20px; }
+  .results-title {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(1.5rem, 4vw, 2.5rem);
+    font-weight: 900;
+    color: var(--glow-gold);
+    margin-bottom: 8px;
+  }
+  .final-score {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(3rem, 8vw, 6rem);
+    font-weight: 900;
+    background: linear-gradient(135deg, var(--glow-gold), var(--glow-blue));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 20px 0;
+    filter: drop-shadow(0 0 20px rgba(255,213,79,0.5));
+  }
+  .result-breakdown {
+    display: flex; justify-content: center; gap: 40px; margin: 20px 0 40px;
+    flex-wrap: wrap;
+  }
+  .result-stat { text-align: center; }
+  .result-stat .val {
+    font-family: 'Orbitron', monospace;
+    font-size: 2rem; font-weight: 900;
+    display: block;
+  }
+  .result-stat .lbl { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 2px; }
+  .correct-val { color: var(--glow-green); }
+  .wrong-val { color: var(--glow-red); }
+
+  .results-detail {
+    max-width: 700px; margin: 0 auto 40px;
+    text-align: left;
+  }
+  .results-detail h3 {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.9rem; color: var(--glow-blue);
+    margin-bottom: 16px; letter-spacing: 2px;
+  }
+  .result-planet-row {
+    display: flex; align-items: flex-start; gap: 12px;
+    margin-bottom: 12px;
+    background: rgba(13,21,53,0.6);
+    border-radius: 10px;
+    padding: 12px 16px;
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+  .result-planet-name {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.75rem; font-weight: 700;
+    min-width: 80px;
+  }
+  .result-moons { display: flex; flex-wrap: wrap; gap: 6px; }
+  .result-moon {
+    font-size: 0.72rem;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-weight: 600;
+  }
+  .result-moon.correct { background: rgba(102,187,106,0.2); border: 1px solid var(--glow-green); color: var(--glow-green); }
+  .result-moon.wrong { background: rgba(239,83,80,0.2); border: 1px solid var(--glow-red); color: var(--glow-red); }
+
+  .game-over-timer {
+    font-family: 'Orbitron', monospace;
+    font-size: 1rem; color: var(--glow-red);
+    text-align: center; margin-bottom: 20px;
+    animation: timerPulse 0.5s ease-in-out infinite;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .game-layout { grid-template-columns: 1fr; }
+    .planets-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  .divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(79,195,247,0.3), transparent);
+    margin: 30px 0;
+  }
+</style>
+</head>
+<body>
+<div class="stars"></div>
+<div class="container">
+
+  <!-- TITLE SCREEN -->
+  <div id="screen-title" class="screen active">
+    <div class="title-screen">
+      <div class="black-hole-visual"></div>
+      <div class="title-main">Return the Lost Moons!</div>
+      <div class="title-sub">A Cosmic Sorting Challenge</div>
+      <div class="divider"></div>
+      <p class="story-text">
+        The planets of the Solar System — including <strong>poor Pluto</strong> — have lost their moons!<br><br>
+        All <strong>23 moons</strong> have been swallowed by a <strong>Black Hole</strong>. 
+        You must rescue them and return each moon to its rightful planet before the Black Hole sucks everything up for good!
+      </p>
+      <button class="btn btn-gold" onclick="startMemorise()">🚀 Begin Mission</button>
+    </div>
+  </div>
+
+  <!-- MEMORISE SCREEN -->
+  <div id="screen-memorise" class="screen">
+    <div class="memorise-header">
+      <h2>⏱️ MEMORISE THE MOONS</h2>
+      <p>Study which moons belong to which planet. The list disappears when the timer runs out!</p>
+    </div>
+    <div class="timer-text" id="memorise-timer">120</div>
+    <div class="timer-bar-wrap">
+      <div class="timer-bar" id="memorise-bar"></div>
+    </div>
+    <div class="moon-list-grid" id="moon-list"></div>
+  </div>
+
+  <!-- GAME SCREEN -->
+  <div id="screen-game" class="screen">
+    <div class="game-header">
+      <div>
+        <h2>🌑 SORT THE MOONS</h2>
+        <div style="font-size:0.8rem;color:#546e7a;margin-top:4px;">Drag moons from the Black Hole into the correct planet basket</div>
+      </div>
+      <div class="score-display">Score: <span id="live-score">0</span></div>
+    </div>
+    <div class="game-layout">
+      <div>
+        <div class="planets-grid" id="planets-grid"></div>
+      </div>
+      <div>
+        <div class="black-hole-section">
+          <h3>🕳️ THE BLACK HOLE</h3>
+          <div class="black-hole-basket" id="black-hole"
+            ondragover="event.preventDefault()" ondrop="dropToBlackHole(event)">
+          </div>
+        </div>
+        <div style="margin-top:16px;text-align:center;">
+          <button class="btn btn-gold" onclick="submitGame()" style="font-size:0.8rem;padding:12px 24px;">
+            ✅ Submit Answers
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESULTS SCREEN -->
+  <div id="screen-results" class="screen">
+    <div class="results-screen">
+      <div class="results-title" id="results-title">Mission Complete!</div>
+      <div class="final-score" id="final-score">0</div>
+      <div style="color:var(--muted);font-size:0.9rem;margin-bottom:20px;">POINTS</div>
+      <div class="result-breakdown">
+        <div class="result-stat"><span class="val correct-val" id="res-correct">0</span><span class="lbl">Correct (+1 each)</span></div>
+        <div class="result-stat"><span class="val wrong-val" id="res-wrong">0</span><span class="lbl">Wrong / In Black Hole (-1 each)</span></div>
+      </div>
+      <div class="results-detail">
+        <h3>📋 ANSWER BREAKDOWN</h3>
+        <div id="results-breakdown"></div>
+      </div>
+      <button class="btn btn-green" onclick="restartGame()">🔄 Play Again</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const MOONS_DATA = {
+  Mercury: { emoji: '⚫', moons: [], color: '#90a4ae', class: 'p-mercury' },
+  Venus:   { emoji: '🟡', moons: [], color: '#ffcc80', class: 'p-venus' },
+  Earth:   { emoji: '🔵', moons: ['Moon'], color: '#64b5f6', class: 'p-earth' },
+  Mars:    { emoji: '🔴', moons: ['Phobos', 'Deimos'], color: '#ef5350', class: 'p-mars' },
+  Jupiter: { emoji: '🟠', moons: ['Io', 'Europa', 'Ganymede', 'Callisto', 'Amalthea', 'Himalia', 'Thebe'], color: '#ffb74d', class: 'p-jupiter' },
+  Saturn:  { emoji: '🪐', moons: ['Titan', 'Enceladus', 'Mimas', 'Rhea', 'Dione', 'Tethys', 'Iapetus'], color: '#ffd54f', class: 'p-saturn' },
+  Uranus:  { emoji: '🩵', moons: ['Miranda', 'Ariel', 'Umbriel'], color: '#4dd0e1', class: 'p-uranus' },
+  Neptune: { emoji: '🔷', moons: ['Triton', 'Proteus', 'Nereid'], color: '#5c6bc0', class: 'p-neptune' },
+  Pluto:   { emoji: '🟣', moons: ['Charon'], color: '#b39ddb', class: 'p-pluto' }
+};
+
+// Flat lookup: moon name → correct planet
+const MOON_TO_PLANET = {};
+Object.entries(MOONS_DATA).forEach(([planet, data]) => {
+  data.moons.forEach(m => MOON_TO_PLANET[m] = planet);
+});
+
+// State: where each moon currently is
+let moonLocations = {}; // moon -> planet name or 'blackhole'
+let memoriseInterval = null;
+let memoriseTime = 120;
+
+function allMoons() {
+  return Object.values(MOONS_DATA).flatMap(d => d.moons);
+}
+
+function startMemorise() {
+  showScreen('screen-memorise');
+  // Build list
+  const grid = document.getElementById('moon-list');
+  grid.innerHTML = '';
+  Object.entries(MOONS_DATA).forEach(([planet, data]) => {
+    if (data.moons.length === 0) {
+      const card = document.createElement('div');
+      card.className = 'planet-moon-card';
+      card.innerHTML = `<h3 style="color:${data.color}">${data.emoji} ${planet}</h3><p style="font-size:0.8rem;color:#546e7a;font-style:italic;">No moons</p>`;
+      grid.appendChild(card);
+      return;
+    }
+    const card = document.createElement('div');
+    card.className = 'planet-moon-card';
+    card.innerHTML = `<h3 style="color:${data.color}">${data.emoji} ${planet}</h3><ul>${data.moons.map(m=>`<li>🌑 ${m}</li>`).join('')}</ul>`;
+    grid.appendChild(card);
+  });
+
+  memoriseTime = 45;
+  updateMemoriseTimer();
+  memoriseInterval = setInterval(() => {
+    memoriseTime--;
+    updateMemoriseTimer();
+    if (memoriseTime <= 0) {
+      clearInterval(memoriseInterval);
+      startGame();
+    }
+  }, 1000);
+}
+
+function updateMemoriseTimer() {
+  document.getElementById('memorise-timer').textContent = memoriseTime;
+  const pct = (memoriseTime / 45) * 100;
+  document.getElementById('memorise-bar').style.width = pct + '%';
+  const timerEl = document.getElementById('memorise-timer');
+  if (memoriseTime <= 10) timerEl.style.color = '#ef5350';
+  else if (memoriseTime <= 30) timerEl.style.color = '#ffd54f';
+  else timerEl.style.color = '#ffd54f';
+}
+
+function startGame() {
+  // Init all moons to black hole
+  allMoons().forEach(m => { moonLocations[m] = 'blackhole'; });
+  buildGameUI();
+  showScreen('screen-game');
+}
+
+function buildGameUI() {
+  // Planets grid
+  const grid = document.getElementById('planets-grid');
+  grid.innerHTML = '';
+  Object.entries(MOONS_DATA).forEach(([planet, data]) => {
+    const div = document.createElement('div');
+    div.className = `planet-basket ${data.class}`;
+    div.id = `basket-${planet}`;
+    div.setAttribute('data-planet', planet);
+    div.innerHTML = `
+      <h4 style="color:${data.color}">${data.emoji} ${planet}</h4>
+      <div class="moons-in" id="moons-in-${planet}"></div>
+      <div class="moon-count" id="count-${planet}">0 moon${data.moons.length !== 1 ? 's' : ''} placed</div>
+    `;
+    div.addEventListener('dragover', e => { e.preventDefault(); div.classList.add('drag-over'); });
+    div.addEventListener('dragleave', () => div.classList.remove('drag-over'));
+    div.addEventListener('drop', e => { e.preventDefault(); div.classList.remove('drag-over'); dropMoon(e, planet); });
+    grid.appendChild(div);
+  });
+
+  renderBlackHole();
+  updateScore();
+}
+
+function renderBlackHole() {
+  const bh = document.getElementById('black-hole');
+  bh.innerHTML = '';
+  allMoons().filter(m => moonLocations[m] === 'blackhole').forEach(moon => {
+    bh.appendChild(makeMoonChip(moon));
+  });
+}
+
+function renderPlanetBasket(planet) {
+  const container = document.getElementById(`moons-in-${planet}`);
+  container.innerHTML = '';
+  allMoons().filter(m => moonLocations[m] === planet).forEach(moon => {
+    container.appendChild(makeMoonChip(moon));
+  });
+  const count = allMoons().filter(m => moonLocations[m] === planet).length;
+  document.getElementById(`count-${planet}`).textContent = `${count} moon${count !== 1 ? 's' : ''} placed`;
+}
+
+function makeMoonChip(moon) {
+  const chip = document.createElement('div');
+  chip.className = 'moon-chip';
+  chip.draggable = true;
+  chip.textContent = '🌑 ' + moon;
+  chip.dataset.moon = moon;
+  chip.addEventListener('dragstart', e => {
+    e.dataTransfer.setData('moon', moon);
+    chip.classList.add('dragging');
+  });
+  chip.addEventListener('dragend', () => chip.classList.remove('dragging'));
+  return chip;
+}
+
+function dropMoon(e, targetPlanet) {
+  const moon = e.dataTransfer.getData('moon');
+  if (!moon) return;
+  const prev = moonLocations[moon];
+  moonLocations[moon] = targetPlanet;
+  if (prev === 'blackhole') renderBlackHole();
+  else renderPlanetBasket(prev);
+  renderPlanetBasket(targetPlanet);
+  updateScore();
+}
+
+function dropToBlackHole(e) {
+  const moon = e.dataTransfer.getData('moon');
+  if (!moon) return;
+  const prev = moonLocations[moon];
+  moonLocations[moon] = 'blackhole';
+  if (prev !== 'blackhole') renderPlanetBasket(prev);
+  renderBlackHole();
+  updateScore();
+}
+
+function calcScore() {
+  let correct = 0, wrong = 0;
+  allMoons().forEach(moon => {
+    const loc = moonLocations[moon];
+    if (loc === 'blackhole') { wrong++; }
+    else if (loc === MOON_TO_PLANET[moon]) { correct++; }
+    else { wrong++; }
+  });
+  return { correct, wrong, score: correct - wrong };
+}
+
+function updateScore() {
+  const { score } = calcScore();
+  document.getElementById('live-score').textContent = score;
+}
+
+function submitGame() {
+  const { correct, wrong, score } = calcScore();
+  // Results
+  document.getElementById('final-score').textContent = score;
+  document.getElementById('res-correct').textContent = correct;
+  document.getElementById('res-wrong').textContent = wrong;
+
+  const title = score >= 20 ? '🏆 Cosmic Champion!' : score >= 10 ? '⭐ Great Explorer!' : score >= 0 ? '🚀 Mission Attempted!' : '🌑 The Black Hole Wins...';
+  document.getElementById('results-title').textContent = title;
+
+  // Breakdown
+  const bd = document.getElementById('results-breakdown');
+  bd.innerHTML = '';
+  Object.entries(MOONS_DATA).forEach(([planet, data]) => {
+    if (data.moons.length === 0) return;
+    const row = document.createElement('div');
+    row.className = 'result-planet-row';
+    const placed = allMoons().filter(m => moonLocations[m] === planet);
+    const moonHtml = data.moons.map(moon => {
+      const loc = moonLocations[moon];
+      const isCorrect = loc === planet;
+      return `<span class="result-moon ${isCorrect ? 'correct' : 'wrong'}">${isCorrect ? '✓' : '✗'} ${moon}</span>`;
+    }).join('');
+    // Also show incorrectly placed moons
+    const wronglyPlaced = placed.filter(m => MOON_TO_PLANET[m] !== planet);
+    const wrongHtml = wronglyPlaced.map(m => `<span class="result-moon wrong">✗ ${m} (belongs to ${MOON_TO_PLANET[m]})</span>`).join('');
+    row.innerHTML = `<div class="result-planet-name" style="color:${data.color}">${data.emoji} ${planet}</div><div class="result-moons">${moonHtml}${wrongHtml}</div>`;
+    bd.appendChild(row);
+  });
+
+  showScreen('screen-results');
+}
+
+function restartGame() {
+  moonLocations = {};
+  showScreen('screen-title');
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+</script>
+</body>
+</html>
